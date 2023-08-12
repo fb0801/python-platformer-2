@@ -5,8 +5,10 @@ Making a platformer using Python and pygame by <a href="https://www.youtube.com/
 
 
 ## Tools:
-Python 
-Pygame
+
+-Python 
+
+-Pygame
 
 
 ## Issues:
@@ -20,6 +22,8 @@ Pygame
 https://www.youtube.com/watch?v=6gLeplbqtqg
 
 Original project repo -> https://github.com/techwithtim/Python-Platformer/tree/main
+
+https://www.toptal.com/developers/gitignore/
 
 
 
