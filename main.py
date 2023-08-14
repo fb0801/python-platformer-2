@@ -28,10 +28,11 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):
 
     for image in images:
         sprite_sheet = pygame.image.load(join(path, image)).convert_alpha()
+        
         sprites = []
         for i in range(sprite_sheet.get_width() // width):
             surface = pygame.Surface((width, height), pygame.SRCALPHA, 32)
-            rect = pygame.Rect(1*width, 0, width, height)
+            rect = pygame.Rect(1* width, 0, width, height)
             surface.blit(sprite_sheet, (0,0), rect)
             sprites.append(pygame.transform.scale2x(surface))
 
@@ -69,7 +70,8 @@ class Player(pygame.sprite.Sprite):
         self.direction = 'left'
         self.animation_count = 0
         self.fall_count = 0
-        self.jump = 0
+        self.jump_count = 0
+        self.hit_count = False
 
     def jump(self):
         self.y_vel = -self.GRAVITY * 8
@@ -81,6 +83,10 @@ class Player(pygame.sprite.Sprite):
     def move(self, dx,dy):
         self.rect.x += dx
         self.rect.y += dy 
+
+    def make_hit(self):
+         self.hit = True
+         self.hit_count=0
 
     def move_left(self, vel):
         self.x_vel = -vel
@@ -95,10 +101,16 @@ class Player(pygame.sprite.Sprite):
             self.animation_count = 0
 
     def loop(self, fps):
-        self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY) 
+        self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY)
         self.move(self.x_vel, self.y_vel)
-        self.fall_count +=1
 
+        if self.hit:
+            self.hit_count += 1
+        if self.hit_count > fps * 2:
+            self.hit = False
+            self.hit_count = 0
+
+        self.fall_count += 1
         self.update_sprite()
 
     def landed(self):
@@ -112,17 +124,18 @@ class Player(pygame.sprite.Sprite):
 
 
     def update_sprite(self):
-        sprite_sheet = 'idle'
-
-        if self.x_vel < 0:
+        sprite_sheet = "idle"
+        if self.hit:
+            sprite_sheet = "hit"
+        elif self.y_vel < 0:
             if self.jump_count == 1:
                 sprite_sheet = "jump"
             elif self.jump_count == 2:
-                sprite_sheet = 'double_jump'
+                sprite_sheet = "double_jump"
         elif self.y_vel > self.GRAVITY * 2:
-            sprite_sheet ='fall'
+            sprite_sheet = "fall"
         elif self.x_vel != 0:
-            sprite_sheet = 'run'
+            sprite_sheet = "run"
 
         sprite_sheet_name = sprite_sheet + "_" + self.direction
         sprites = self.SPRITES[sprite_sheet_name]
@@ -255,7 +268,13 @@ def handle_move(player, objects):
     if keys[pygame.K_RIGHT] and not collide_right:
         player.move_right(PLAYER_VEL)
 
-    handle_vertical_collision(player, objects, player.y_vel)
+    vertical_collide = handle_vertical_collision(player, objects, player.y_vel)
+    to_check =[collide_left, collide_right, *vertical_collide]
+    
+    for obj in to_check:
+        if obj and obj.name == "fire":
+            player.make_hit()
+
 
 def main(window):
     clock = pygame.time.Clock()
